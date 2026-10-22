@@ -1,0 +1,33 @@
+Socket
+-stream-socket
+-datagram-socket
+
+
+
+socket(int domain, int type, int protocole) : crée un socket et retourne un descripteur de fichier (un entier) qui représente ce socket. Les paramètres sont :
+- domain : le domaine de communication (AF_INET pour IPv4, AF_INET6 pour IPv4, AF_UNIX pour les sockets locaux, etc.).
+- type : le type de socket (SOCK_STREAM pour TCP, SOCK_DGRAM pour UDP, etc.).
+- protocole : le protocole à utiliser (0 pour choisir automatiquement le protocole approprié en fonction du type de socket).
+
+bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) : associe le socket identifié par sockfd à une adresse réseau spécifiée par addr. Cela permet au socket d'écouter les connexions entrantes sur cette adresse.
+
+listen(int sockfd, int backlog) : met le socket identifié par sockfd en mode écoute pour les connexions entrantes. Le paramètre backlog spécifie le nombre maximum de connexions en attente que le système peut maintenir.
+- sockfd : le descripteur de fichier du socket à mettre en écoute.
+- backlog : le nombre maximum de connexions en attente que le système peut maintenir.
+
+
+struct sockaddr_in address; : structure qui contient les informations nécessaires pour établir une connexion réseau (adresse IP et port).
+sin_family = AF_INET;
+
+« Je veux utiliser le protocole IPv4 ».
+
+sin_addr.s_addr = INADDR_ANY;
+
+« Je veux écouter sur toutes les interfaces réseau disponibles de la machine » (équivalent à 0.0.0.0, pour accepter les connexions locales et externes).
+
+sin_port = htons(6667);
+
+« Je veux écouter sur le port 6667 » (le port IRC standard, converti au format réseau avec htons).
+
+htons: signifie Host To Network Short.
+- Il prend le numéro de port (sur 2 octets, d'où le Short) et le retourne dans le sens exact exigé par le réseau pour que n'importe quelle machine puisse le comprendre.
