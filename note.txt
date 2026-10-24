@@ -91,3 +91,8 @@ serverStart()
                             ├── erase(0, pos + 1) du buffer
                             ├── retire le '\r' final si présent
                             └── log "Command received" (→ plus tard handleCommand(fd, line))
+
+
+prompt ./ircserv 6667 test
+
+cote client : nc localhost 6667
