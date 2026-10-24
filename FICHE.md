@@ -169,18 +169,6 @@ Le `@` devant `alice` dans `353` indique qu'elle est opérateur.
 | 471 / 473 / 474 / 475 | CHANNELISFULL / INVITEONLYCHAN / BANNEDFROMCHAN / BADCHANNELKEY | refus de `JOIN` |
 | 482 | ERR_CHANOPRIVSNEEDED | droits opérateur requis |
 
-## 9. Questions pour vérifier que tu as compris
-
-Si tu sais répondre à tout sans regarder, tu es prêt pour la défense :
-
-1. Pourquoi un `recv()` ne rend-il pas forcément une commande complète ? Que fais-tu de la ligne incomplète ?
-2. Que se passe-t-il si un client envoie 3 commandes dans un seul paquet ?
-3. Pourquoi ne demande-t-on `POLLOUT` que quand il y a quelque chose à envoyer ?
-4. Que fais-tu quand `recv()` retourne 0 ? Et un nombre négatif ?
-5. Que doit-on nettoyer quand un client se déconnecte en pleine session (channels, invitations, opérateur) ?
-6. Quand un channel doit-il être supprimé ? Et si le dernier opérateur part ?
-7. Quelle différence entre `MODE #c +o bob` et `MODE #c +k secret` du point de vue des paramètres ?
-8. Pourquoi `SIGPIPE` est-il dangereux pour ton serveur ?
 
 ## 10. Ressources pour approfondir
 

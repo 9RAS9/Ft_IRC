@@ -31,3 +31,63 @@ sin_port = htons(6667);
 
 htons: signifie Host To Network Short.
 - Il prend le numéro de port (sur 2 octets, d'où le Short) et le retourne dans le sens exact exigé par le réseau pour que n'importe quelle machine puisse le comprendre.
+
+recv(int sockfd, void *buf, size_t len, int flags):
+- Reçoit des données depuis le socket identifié par sockfd et les stocke dans le tampon buffer. La fonction retourne le nombre d'octets reçus ou -1 en cas d'erreur.
+
+accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen):
+- Accepte une connexion entrante sur le socket identifié par sockfd. La fonction retourne un nouveau descripteur de fichier pour la connexion acceptée, ou -1 en cas d'erreur
+Server(port)
+└── initialise _buffers, _pollfds, _server_fd = -1, _port, _addrlen
+
+disconnectClient(index)   ← méthode unique de déconnexion
+├── client_fd = _pollfds[index].fd
+├── log "Client disconnected"
+├── _buffers.erase(client_fd)        → supprime son buffer de lecture
+├── close(client_fd)
+└── _pollfds.erase(index)            → retire de la liste surveillée par poll
+    (l'appelant doit faire i-- ensuite)
+
+initserver()   ← préparation du socket d'écoute
+├── 1. socket(AF_INET, SOCK_STREAM, 0)
+├── 2. setsockopt(SO_REUSEADDR)
+├── 3. fcntl(F_SETFL, O_NONBLOCK)
+├── 4. sockaddr_in + memset              → IPv4, INADDR_ANY, htons(port)
+├── 5. bind()
+└── 6. listen(SOMAXCONN)
+
+serverStart()
+│
+├── 1. PHASE D'INITIALISATION
+│   └── _pollfds[0] = socket serveur (events = POLLIN)
+│
+└── 2. BOUCLE PRINCIPALE while(1)
+    │
+    ├── A. poll(&_pollfds[0], _pollfds.size(), -1)
+    │   └── activity < 0 → message → exit
+    │
+    └── B. for chaque fd (index i)
+        │
+        ├── B1. Erreur ? (i > 0 && revents & (POLLHUP | POLLERR | POLLNVAL))
+        │   └── OUI → disconnectClient(i) → i-- → continue
+        │
+        └── B2. Données ? (revents & POLLIN)
+            │
+            ├── CAS 1 : fd == _server_fd → NOUVELLE CONNEXION
+            │   ├── accept()                      → échec : continue
+            │   ├── fcntl(F_SETFL, O_NONBLOCK)    → échec : close + continue
+            │   ├── push_back dans _pollfds (POLLIN)
+            │   ├── _buffers[client_fd] = ""      → buffer de lecture vide
+            │   └── log "New client connected"
+            │
+            └── CAS 2 : fd == client → DONNÉES D'UN CLIENT
+                └── recv(client_fd, buffer)
+                    ├── bytesRead < 0  → continue (sans errno)
+                    ├── bytesRead == 0 → disconnectClient(i) → i--
+                    └── bytesRead > 0
+                        ├── _buffers[fd].append(buffer, bytesRead)
+                        └── while (find('\n') != npos)
+                            ├── line = substr(0, pos)
+                            ├── erase(0, pos + 1) du buffer
+                            ├── retire le '\r' final si présent
+                            └── log "Command received" (→ plus tard handleCommand(fd, line))
